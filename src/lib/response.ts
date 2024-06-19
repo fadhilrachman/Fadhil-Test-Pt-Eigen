@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -29,24 +30,27 @@ const successResponseWriteAction = ({
 };
 
 export const errorHandler = ({
-  message,
   status,
+  error,
+  module,
 }: {
-  message: string;
   status: number;
+  error: any;
+  module: string;
 }) => {
   switch (true) {
     case status == 400:
-      throw new BadRequestException(message);
+      throw new BadRequestException(error?.message);
     case status == 404:
-      throw new NotFoundException(message);
+      throw new NotFoundException(error?.message);
     case status == 401:
-      throw new UnauthorizedException(message);
+      throw new UnauthorizedException(error?.message);
     case status == 403:
-      throw new ForbiddenException(message);
+      throw new ForbiddenException(error?.message);
 
     default:
-      throw Error(message);
+      console.log(`${module} : `, error);
+      throw new InternalServerErrorException('Internal Server Error');
   }
 };
 

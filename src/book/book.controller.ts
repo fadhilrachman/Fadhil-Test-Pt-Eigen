@@ -6,13 +6,23 @@ import {
   Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { BookService } from './book.service';
-import { CreateBookDto } from './dto/create-book.dto';
-import { UpdateBookDto } from './dto/update-book.dto';
+import {
+  CreateBookDto,
+  CreateBorrowingBookDto,
+  ReturnBook,
+} from './dto/create-book.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { errorHandler, succesResponseFindList } from 'src/lib/response';
-import { Book } from '@prisma/client';
+import {
+  ReponseAlreadyReturnedBook,
+  ReponseNotFound,
+  ResponseBook,
+  ResponseOneBook,
+  ResponseSavedBook,
+} from './entities/book.entity';
 
 @ApiTags('Book')
 @Controller('book')
@@ -23,22 +33,21 @@ export class BookController {
   @Get()
   @ApiResponse({
     status: 200,
-    description: 'All data list',
-    // content:
-    // schema
-
-    // data:Book[],
+    type: ResponseBook,
   })
   async findAll() {
     try {
       const result = await this.bookService.findAll();
-
       return {
-        data: result,
         message: 'Succes get book',
+        data: result,
       };
     } catch (error) {
-      return errorHandler({ message: error.message, status: error.status });
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK(DELETE)',
+      });
     }
   }
 
@@ -46,89 +55,153 @@ export class BookController {
   @Post()
   // @ApiOperation({ summary: 'Create a new book' })
   @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        author: {
-          type: 'string',
-          title: 'Book Author ',
-          example: 'test',
-          description: 'this is a book author',
-        },
-        title: {
-          title: 'Book Title ',
-          type: 'string',
-          example: 'test',
-          description: 'this is a book title',
-        },
-        stok: {
-          title: 'Book Stock ',
-          type: 'integer',
-          example: 1,
-          description: 'this is a book stock',
-        },
-      },
-    },
+    type: CreateBookDto,
   })
   @ApiResponse({
     status: 201,
-    schema: {
-      type: 'object',
-      properties: {
-        author: {
-          type: 'string',
-          title: 'Book Author ',
-          example: 'test',
-          description: 'this is a book author',
-        },
-        title: {
-          title: 'Book Title ',
-          type: 'string',
-          example: 'test',
-          description: 'this is a book title',
-        },
-        stok: {
-          title: 'Book Stock ',
-          type: 'integer',
-          example: 1,
-          description: 'this is a book stock',
-        },
-      },
-    },
+    type: ResponseSavedBook,
   })
-  create(@Body() createBookDto: CreateBookDto) {
-    return this.bookService.create(createBookDto);
+  async create(@Body() createBookDto: CreateBookDto) {
+    try {
+      const result = await this.bookService.create(createBookDto);
+      return {
+        message: 'Book saved successfully',
+        data: result,
+      };
+    } catch (error) {
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK(DELETE)',
+      });
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bookService.findOne(id);
+  @ApiResponse({
+    status: 200,
+    type: ResponseOneBook,
+  })
+  @ApiResponse({
+    status: 404,
+    type: ReponseNotFound,
+  })
+  async findOne(@Param('id') id: string) {
+    try {
+      const result = await this.bookService.findOne(id);
+      return {
+        message: 'Book get successfully',
+        data: result,
+      };
+    } catch (error) {
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK(DELETE)',
+      });
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookDto: CreateBookDto) {
-    return this.bookService.update(id, updateBookDto);
+  // UPDATE BOOK
+  @Put(':id')
+  @ApiBody({
+    type: CreateBookDto,
+  })
+  @ApiResponse({
+    status: 201,
+    type: ResponseSavedBook,
+  })
+  @ApiResponse({
+    status: 404,
+    type: ReponseNotFound,
+  })
+  async update(@Param('id') id: string, @Body() updateBookDto: CreateBookDto) {
+    try {
+      const result = await this.bookService.update(id, updateBookDto);
+      return {
+        message: 'Book saved successfully',
+        data: result,
+      };
+    } catch (error) {
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK(DELETE)',
+      });
+    }
   }
 
+  // DELETE BOOK
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bookService.remove(id);
+  @ApiResponse({
+    status: 200,
+    type: ResponseSavedBook,
+  })
+  @ApiResponse({
+    status: 404,
+    type: ReponseNotFound,
+  })
+  async remove(@Param('id') id: string) {
+    try {
+      const result = await this.bookService.remove(id);
+      return {
+        message: 'Book deleted successfully',
+        data: result,
+      };
+    } catch (error) {
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK(DELETE)',
+      });
+    }
   }
 
   @Patch('/return/:id')
-  bookReturn(@Param('id') id: string, @Body() updateBookDto: CreateBookDto) {
-    return this.bookService.update(id, updateBookDto);
+  @ApiResponse({
+    status: 404,
+    type: ReponseNotFound,
+  })
+  @ApiResponse({
+    status: 400,
+    type: ReponseAlreadyReturnedBook,
+  })
+  async bookReturn(@Param('id') id: string, @Body() updateBookDto: ReturnBook) {
+    try {
+      const result = await this.bookService.returnBook(id, updateBookDto);
+      return {
+        message: 'Book returned successfully',
+        result,
+      };
+    } catch (error) {
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK/RETURN(PATCH)',
+      });
+    }
   }
 
-  @Patch('/borrowing-history')
+  @Get('/borrowing-history')
   bookBorrowingHistory(
     @Param('id') id: string,
-    @Body() updateBookDto: CreateBookDto,
-  ) {
-    return this.bookService.update(id, updateBookDto);
-  }
-  @Patch('/borrowing/:id')
-  bookBorrowing(@Param('id') id: string, @Body() updateBookDto: CreateBookDto) {
-    return this.bookService.update(id, updateBookDto);
+    @Body() updateBookDto: ReturnBook,
+  ) {}
+  @Patch('/borrowing')
+  @ApiBody({ type: CreateBorrowingBookDto })
+  async bookBorrowing(@Body() body: CreateBorrowingBookDto) {
+    try {
+      const result = await this.bookService.borrowingBook(body);
+      return {
+        message: 'Book borrowing successfully',
+        result,
+      };
+    } catch (error) {
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK/BORROWING(PATCH)',
+      });
+    }
   }
 }

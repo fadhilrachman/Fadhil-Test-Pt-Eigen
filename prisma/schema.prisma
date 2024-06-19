@@ -17,9 +17,13 @@ datasource db {
 model User{
   id String @id @default(uuid())
   name String
+  email String
   code String
   password String
   token String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? 
   role RoleUser
   borowingBook BorowingBook[]
 }
@@ -28,25 +32,32 @@ model Book{
   id String @id @default(uuid())
   title String
   code String
-  stok Int
+  stock Int
+  borrowingCount Int
   author String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? 
   borowingBook BorowingBook[]
 }
 
 
 model BorowingBook{
   id String @id @default(uuid())
-  start_date Int
-  due_date String
-
+  startDate DateTime
+  dueDate DateTime
+  returnDate DateTime?
   idUser String
   user User @relation(fields: [idUser], references: [id])
 
   idBook String
   book Book @relation(fields: [idBook], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? 
 }
 
 enum RoleUser{
   admin
-  customer
+  member
 }
