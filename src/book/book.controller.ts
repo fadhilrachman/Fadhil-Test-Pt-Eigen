@@ -14,7 +14,13 @@ import {
   CreateBorrowingBookDto,
   ReturnBook,
 } from './dto/create-book.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { errorHandler, succesResponseFindList } from 'src/lib/response';
 import {
   ReponseAlreadyReturnedBook,
@@ -25,6 +31,7 @@ import {
 } from './entities/book.entity';
 
 @ApiTags('Book')
+@ApiBearerAuth('access-token')
 @Controller('book')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
@@ -182,11 +189,6 @@ export class BookController {
     }
   }
 
-  @Get('/borrowing-history')
-  bookBorrowingHistory(
-    @Param('id') id: string,
-    @Body() updateBookDto: ReturnBook,
-  ) {}
   @Patch('/borrowing')
   @ApiBody({ type: CreateBorrowingBookDto })
   async bookBorrowing(@Body() body: CreateBorrowingBookDto) {
@@ -201,6 +203,24 @@ export class BookController {
         error,
         status: error.status,
         module: 'BOOK/BORROWING(PATCH)',
+      });
+    }
+  }
+
+  @Get('/borrowing/history')
+  async getKontol() {
+    try {
+      const result = await this.bookService.bookBorrowingHistory();
+
+      return {
+        message: 'Book borrowing get successfully',
+        result,
+      };
+    } catch (error) {
+      return errorHandler({
+        error,
+        status: error.status,
+        module: 'BOOK/BORROWING/HISTORY(GET)',
       });
     }
   }

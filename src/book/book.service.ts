@@ -9,9 +9,8 @@ import {
   CreateBorrowingBookDto,
   ReturnBook,
 } from './dto/create-book.dto';
-import { UpdateBookDto } from './dto/update-book.dto';
 import { DatabaseService } from 'src/database/database.service';
-
+import * as moment from 'moment';
 @Injectable()
 export class BookService {
   constructor(private readonly databaseService: DatabaseService) {}
@@ -76,10 +75,45 @@ export class BookService {
     if (checkMaxBorrowingMember >= 2)
       throw new BadRequestException('Max borrow requests book');
 
+    const due = await this.databaseService.borowingBook.findMany({
+      where: {
+        idUser,
+      },
+    });
+    // moment().
+    const today = moment();
+
+    const checkIfBookNotReturn = due.map((val) => {
+      const dueDate = moment(val.dueDate);
+      return val.returnDate ? false : dueDate.isBefore(today);
+    });
+
+    const checkIfUseStill3DaysBan = due.map((val) => {
+      const dueDate = moment(val.dueDate);
+      const returnDate = moment(val.returnDate);
+
+      if (!val.returnDate) return false;
+
+      if (returnDate.diff(dueDate, 'days') > 7) {
+        return today.diff(returnDate, 'days') < 4 ? true : false;
+      }
+      return false;
+    });
+
+    if (
+      checkIfUseStill3DaysBan.includes(true) ||
+      checkIfUseStill3DaysBan.includes(true)
+    )
+      throw new BadRequestException('You are still banned');
+
+    // if(checkIfBookNotReturn.includes(false))
+
     // VALIDATION IF BOOK NOT FOUND
     const dataBook = await this.databaseService.book.findUnique({
       where: { id: idBook },
     });
+
+    console.log({ dataBook });
 
     if (!dataBook) throw new NotFoundException('Book not found');
 
@@ -138,6 +172,17 @@ export class BookService {
         data: { borrowingCount: dataDetail.book.borrowingCount - 1 },
       }),
     ]);
+
+    return result;
+  }
+
+  async bookBorrowingHistory() {
+    const result = await this.databaseService.borowingBook.findMany({
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        book: { select: { id: true, title: true, code: true } },
+      },
+    });
 
     return result;
   }
