@@ -73,3 +73,36 @@ export class ReponseAlreadyReturnedBook {
   @ApiProperty({ example: 400 })
   status: number;
 }
+
+export class ReponseUserStillBan {
+  @ApiProperty({ example: 'You are still banned' })
+  message: string;
+
+  @ApiProperty({ example: 'Bad Request' })
+  error: string;
+
+  @ApiProperty({ example: 400 })
+  status: number;
+}
+
+export class ReponseStockNotAvailable {
+  @ApiProperty({ example: 'Stock not available' })
+  message: string;
+
+  @ApiProperty({ example: 'Bad Request' })
+  error: string;
+
+  @ApiProperty({ example: 400 })
+  status: number;
+}
+
+export class ReponseMaxBorrowing {
+  @ApiProperty({ example: 'Max borrow requests boo' })
+  message: string;
+
+  @ApiProperty({ example: 'Bad Request' })
+  error: string;
+
+  @ApiProperty({ example: 400 })
+  status: number;
+}

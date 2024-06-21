@@ -20,7 +20,7 @@ import { AdminMiddleware, UserMiddleware } from './lib/user.middleware';
     DatabaseModule,
     JwtModule.register({
       global: true,
-      secret: 'asdasdasdasdasdasdasdasdasd',
+      secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '4d' },
     }),
     MemberModule,
@@ -33,17 +33,17 @@ export class AppModule implements NestModule {
     consumer
       .apply(UserMiddleware)
       .forRoutes(
-        { path: 'book', method: RequestMethod.GET },
-        { path: 'book', method: RequestMethod.PATCH },
+        { path: 'book/*', method: RequestMethod.GET },
+        { path: 'book/*', method: RequestMethod.PATCH },
       );
 
     consumer
       .apply(AdminMiddleware)
       .forRoutes(
         { path: 'member', method: RequestMethod.GET },
-        { path: 'book', method: RequestMethod.POST },
-        { path: 'book', method: RequestMethod.PUT },
-        { path: 'book', method: RequestMethod.DELETE },
+        { path: 'book/*', method: RequestMethod.POST },
+        { path: 'book/*', method: RequestMethod.PUT },
+        { path: 'book/*', method: RequestMethod.DELETE },
       );
   }
 }

@@ -69,7 +69,7 @@ export class BookService {
     // VALIDATION IF MEMBER ALREADY BORROWED 2 BOOKS
     const checkMaxBorrowingMember =
       await this.databaseService.borowingBook.count({
-        where: { idUser, returnDate: null },
+        where: { idUser, returnDate: null, deletedAt: null },
       });
 
     if (checkMaxBorrowingMember >= 2)
@@ -101,7 +101,7 @@ export class BookService {
     });
 
     if (
-      checkIfUseStill3DaysBan.includes(true) ||
+      checkIfBookNotReturn.includes(true) ||
       checkIfUseStill3DaysBan.includes(true)
     )
       throw new BadRequestException('You are still banned');
@@ -112,8 +112,6 @@ export class BookService {
     const dataBook = await this.databaseService.book.findUnique({
       where: { id: idBook },
     });
-
-    console.log({ dataBook });
 
     if (!dataBook) throw new NotFoundException('Book not found');
 

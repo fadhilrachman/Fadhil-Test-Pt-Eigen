@@ -30,7 +30,7 @@ export class AuthService {
     if (!checkPassword)
       throw new UnauthorizedException('Email or password incorrect');
 
-    const token = await this.jwtService.signAsync({ name: checkUser.name });
+    const token = await this.jwtService.signAsync({ i: checkUser.id });
 
     await this.databaseService.user.update({
       where: { id: checkUser.id },

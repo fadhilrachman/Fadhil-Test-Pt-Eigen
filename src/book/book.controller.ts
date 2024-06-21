@@ -15,16 +15,23 @@ import {
   ReturnBook,
 } from './dto/create-book.dto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiExtraModels,
   ApiOperation,
   ApiResponse,
   ApiTags,
+  getSchemaPath,
+  refs,
 } from '@nestjs/swagger';
 import { errorHandler, succesResponseFindList } from 'src/lib/response';
 import {
   ReponseAlreadyReturnedBook,
+  ReponseMaxBorrowing,
   ReponseNotFound,
+  ReponseStockNotAvailable,
+  ReponseUserStillBan,
   ResponseBook,
   ResponseOneBook,
   ResponseSavedBook,
@@ -32,6 +39,11 @@ import {
 
 @ApiTags('Book')
 @ApiBearerAuth('access-token')
+@ApiExtraModels(
+  ReponseUserStillBan,
+  ReponseStockNotAvailable,
+  ReponseMaxBorrowing,
+)
 @Controller('book')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
@@ -191,6 +203,20 @@ export class BookController {
 
   @Patch('/borrowing')
   @ApiBody({ type: CreateBorrowingBookDto })
+  @ApiResponse({
+    status: 404,
+    type: ReponseNotFound,
+  })
+  @ApiResponse({
+    status: 400,
+    schema: {
+      anyOf: refs(
+        ReponseUserStillBan,
+        ReponseStockNotAvailable,
+        ReponseMaxBorrowing,
+      ),
+    },
+  })
   async bookBorrowing(@Body() body: CreateBorrowingBookDto) {
     try {
       const result = await this.bookService.borrowingBook(body);
